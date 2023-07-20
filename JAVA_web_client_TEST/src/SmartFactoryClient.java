@@ -1,4 +1,3 @@
-// window monitoring app v0.1
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -9,31 +8,51 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 public class SmartFactoryClient {
-    private static JLabel ipLabel;
+    private static JLabel ipAddressLabel;
     private static JLabel temperatureLabel;
+    private static JLabel photoresistorLabel;
+    private static JLabel countLabel;
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Inha Smart Factory!");
+        JFrame frame = new JFrame("HyeonJin Smart Factory");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 150);
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 1));  // row, column
-        ipLabel = new JLabel("IP Address: ");
+        frame.setSize(600, 400);
+        frame.setLayout(new BorderLayout());
+
+        JPanel mainPanel = new JPanel(new GridLayout(4, 1));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+        ipAddressLabel = new JLabel("IP Address: ");
         temperatureLabel = new JLabel("Temperature: ");
-        JButton refreshButton = new JButton("Check Temperature!");
+        photoresistorLabel = new JLabel("Photoresistor Value: ");
+        countLabel = new JLabel("Object Count: ");
+
+        Font labelFont = new Font("Arial", Font.PLAIN, 20); // Increase font size
+        ipAddressLabel.setFont(labelFont);
+        temperatureLabel.setFont(labelFont);
+        photoresistorLabel.setFont(labelFont);
+        countLabel.setFont(labelFont);
+
+        JButton refreshButton = new JButton("Check Condition");
         refreshButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateLabels();
             }
         });
-        panel.add(ipLabel);
-        panel.add(temperatureLabel);
-        panel.add(refreshButton);
-        frame.getContentPane().add(panel);
+
+        buttonPanel.add(refreshButton);
+        mainPanel.add(ipAddressLabel);
+        mainPanel.add(temperatureLabel);
+        mainPanel.add(photoresistorLabel);
+        mainPanel.add(countLabel);
+
+        frame.add(mainPanel, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
         frame.setVisible(true);
     }
+
     private static void updateLabels() {
-        String urlStr = "http://192.168.0.75:80/";
+        String urlStr = "http://192.168.0.75"; // Update with your server's IP address
         try {
             URL url = new URL(urlStr);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -41,21 +60,19 @@ public class SmartFactoryClient {
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder response = new StringBuilder();
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                    response.append("\n");
+                    if (line.contains("Temperature:")) {
+                        temperatureLabel.setText(line);
+                    } else if (line.contains("Photoresistor Value:")) {
+                        photoresistorLabel.setText(line);
+                    } else if (line.contains("Object Count:")) {
+                        countLabel.setText(line);
+                    } else if (line.contains("Your IP address:")) {
+                        ipAddressLabel.setText(line);
+                    }
                 }
                 reader.close();
-                String[] lines = response.toString().split("\n");
-                if (lines.length >= 4) {
-                    String ip_address = getValue(lines[2]);
-                    ipLabel.setText("IP address : " + ip_address);
-                    temperatureLabel.setText(lines[3]);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Response format error!");
-                }
             } else {
                 JOptionPane.showMessageDialog(null, "Http connection failed : " + responseCode);
             }
@@ -64,9 +81,5 @@ public class SmartFactoryClient {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Exception occurred." + e.getMessage());
         }
-    }
-
-    private static String getValue(String line) {
-        return line.split(": ")[1];
     }
 }
