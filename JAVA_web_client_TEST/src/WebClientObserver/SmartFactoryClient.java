@@ -1,3 +1,5 @@
+package WebClientObserver;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -52,7 +54,7 @@ public class SmartFactoryClient {
     }
 
     private static void updateLabels() {
-        String urlStr = "http://192.168.0.75"; // Update with your server's IP address
+        String urlStr = "http://192.168.15.110:80/"; // Update with your server's IP address
         try {
             URL url = new URL(urlStr);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
